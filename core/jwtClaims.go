@@ -36,22 +36,27 @@ func VerifyRefreshToken(tokenString string, secret string) (JwtClaims, error) {
 	if !ok {
 		return JwtClaims{}, fmt.Errorf("invalid token claims")
 	}
-	tokenClaims.App_id, ok = claims["app_id"].(int)
+	app_id, ok := claims["app_id"].(float64)
 	if !ok {
 		return JwtClaims{}, fmt.Errorf("invalid app id in token")
 	}
+
 	tokenClaims.Email, ok = claims["email"].(string)
 	if !ok {
 		return JwtClaims{}, fmt.Errorf("invalid email in token")
 	}
-	tokenClaims.Uid, ok = claims["uid"].(int64)
+	uid, ok := claims["uid"].(float64)
 	if !ok {
 		return JwtClaims{}, fmt.Errorf("invalid user id in token")
 	}
-	tokenClaims.Exp, ok = claims["exp"].(int64)
+	exp, ok := claims["exp"].(float64)
 	if !ok {
 		return JwtClaims{}, fmt.Errorf("invalid exp in token")
 	}
+
+	tokenClaims.App_id = int(app_id)
+	tokenClaims.Exp = int64(exp)
+	tokenClaims.Uid = int64(uid)
 
 	if !token.Valid {
 		return JwtClaims{}, fmt.Errorf("invalid token")
