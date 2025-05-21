@@ -21,7 +21,7 @@ func (c *JwtClaims) Valid() error {
 	return nil
 }
 
-func VerifyRefreshToken(tokenString string, secret string) (*jwt.Token, error) {
+func VerifyRefreshToken(tokenString string, secret string) (JwtClaims, error) {
 	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
@@ -29,33 +29,33 @@ func VerifyRefreshToken(tokenString string, secret string) (*jwt.Token, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return nil, err
+		return JwtClaims{}, err
 	}
-
+	var tokenClaims JwtClaims
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("invalid token claims")
+		return JwtClaims{}, fmt.Errorf("invalid token claims")
 	}
-	_, ok = claims["app_id"].(float64)
+	tokenClaims.App_id, ok = claims["app_id"].(int)
 	if !ok {
-		return nil, fmt.Errorf("invalid app id in token")
+		return JwtClaims{}, fmt.Errorf("invalid app id in token")
 	}
-	_, ok = claims["email"].(string)
+	tokenClaims.Email, ok = claims["email"].(string)
 	if !ok {
-		return nil, fmt.Errorf("invalid email in token")
+		return JwtClaims{}, fmt.Errorf("invalid email in token")
 	}
-	_, ok = claims["uid"].(int64)
+	tokenClaims.Uid, ok = claims["uid"].(int64)
 	if !ok {
-		return nil, fmt.Errorf("invalid user id in token")
+		return JwtClaims{}, fmt.Errorf("invalid user id in token")
 	}
-	_, ok = claims["exp"].(int64)
+	tokenClaims.Exp, ok = claims["exp"].(int64)
 	if !ok {
-		return nil, fmt.Errorf("invalid exp in token")
+		return JwtClaims{}, fmt.Errorf("invalid exp in token")
 	}
 
 	if !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+		return JwtClaims{}, fmt.Errorf("invalid token")
 	}
 
-	return token, nil
+	return tokenClaims, nil
 }
